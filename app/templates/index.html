@@ -124,7 +124,7 @@ document.getElementById('moodForm').addEventListener('submit', async (e) => {
         playlistGrid.innerHTML = data.playlist.map((track, index) => `
             <div class="bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl">
                 <img 
-                    src="https://via.placeholder.com/300x300?text=Track+${index+1}" 
+                    src="{{ url_for('static', filename='images/my_image.jpeg') }}" 
                     alt="${track.name}" 
                     class="w-full h-48 object-cover"
                 >

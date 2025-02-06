@@ -12,7 +12,9 @@ class MoodAnalyzer:
         1. primary_mood: The main emotion (e.g., "happy", "sad", "energetic")
         2. energy_level: A number from 1-10
         3. genre_suggestions: List of 3 music genres that match this mood
-        Keep it concise and focus on musical relevance.'''
+        Keep it concise and focus on musical relevance.
+        DON'T ADD ANY STATEMENTS IN THE RESPONSE THAT WILL MAKE PARSING THE JSON DIFFICULT'''
         
         response = self.model.generate_content(prompt)
-        return response.text
+        wrapped_text =  f"'''{response.text}'''"
+        return wrapped_text
