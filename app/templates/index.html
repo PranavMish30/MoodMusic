@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center">Mood Playlist Generator</h1>
+    
+    <form id="moodForm" class="mb-8">
+        <div class="mb-4">
+            <textarea 
+                name="text" 
+                id="text" 
+                rows="4" 
+                class="w-full p-2 border rounded"
+                placeholder="How are you feeling today?"></textarea>
+        </div>
+        <button 
+            type="submit" 
+            class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+            Generate Playlist
+        </button>
+    </form>
+    
+    <div id="results" class="hidden">
+        <div id="moodResults" class="mb-8 p-4 bg-white rounded shadow"></div>
+        <div id="playlistResults" class="p-4 bg-white rounded shadow"></div>
+    </div>
+</div>
+
+<script>
+document.getElementById('moodForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const text = document.getElementById('text').value;
+    const results = document.getElementById('results');
+    const moodResults = document.getElementById('moodResults');
+    const playlistResults = document.getElementById('playlistResults');
+    
+    try {
+        const response = await fetch('/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `text=${encodeURIComponent(text)}`
+        });
+        
+        const data = await response.json();
+        
+        // Check for error in response
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Ensure mood_data is parsed correctly
+        let moodData = data.mood_data;
+        if (typeof moodData === 'string') {
+            try {
+                moodData = JSON.parse(moodData);
+            } catch (parseError) {
+                console.error('Failed to parse mood data:', parseError);
+                moodData = {
+                    primary_mood: 'neutral',
+                    energy_level: 5,
+                    genre_suggestions: ['indie', 'acoustic', 'alternative']
+                };
+            }
+        }
+        
+        // Display mood analysis
+        moodResults.innerHTML = `
+            <h2 class="text-xl font-bold mb-2">Mood Analysis</h2>
+            <p>Primary Mood: ${moodData.primary_mood}</p>
+            <p>Energy Level: ${moodData.energy_level}/10</p>
+            <p>Suggested Genres: ${moodData.genre_suggestions.join(', ')}</p>
+        `;
+        
+        // Display playlist
+        playlistResults.innerHTML = `
+            <h2 class="text-xl font-bold mb-2">Generated Playlist</h2>
+            <ul class="space-y-2">
+                ${data.playlist.map(track => `
+                    <li class="p-2 hover:bg-gray-50">
+                        <a href="${track.url}" target="_blank" class="text-blue-500 hover:underline">
+                            ${track.name} - ${track.artist}
+                        </a>
+                        ${track.preview_url ? `
+                            <audio controls class="mt-1 w-full">
+                                <source src="${track.preview_url}" type="audio/mpeg">
+                            </audio>
+                        ` : ''}
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        
+        results.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while generating the playlist. Please try again.');
+    }
+});
+</script>
+{% endblock %}
